@@ -30,3 +30,11 @@ print(augmented_agent_response)
 # The agent likely used its general knowledge about world capitals to answer the prompt. 
 # The system prompt specifying the persona as a college professor influenced the agent to respond in a more formal and educational tone, 
 # starting with "Dear students," which is characteristic of how a professor might address their students.
+print("\n--- Knowledge Source ---")
+print("The agent uses the LLM's general pre-trained knowledge. "
+      "It does not have access to external documents or provided knowledge.")
+
+print("\n--- Persona Impact ---")
+print("By specifying the persona in the system message, the agent adopts "
+      "that role consistently, producing responses with a different tone, "
+      "style, and focus compared to a direct prompt without a persona.")

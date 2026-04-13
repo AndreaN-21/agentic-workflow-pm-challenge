@@ -1,1 +1,9 @@
+Dear students, 
+
 The capital of France is Paris.
+
+--- Knowledge Source ---
+The agent uses the LLM's general pre-trained knowledge. It does not have access to external documents or provided knowledge.
+
+--- Persona Impact ---
+By specifying the persona in the system message, the agent adopts that role consistently, producing responses with a different tone, style, and focus compared to a direct prompt without a persona.

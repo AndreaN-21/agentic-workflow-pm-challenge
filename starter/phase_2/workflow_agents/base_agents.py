@@ -174,6 +174,8 @@ class RAGKnowledgePromptAgent:
                 "end_char": end
             })
 
+            if end == len(text):
+                break
             start = end - self.chunk_overlap
             chunk_id += 1
 
@@ -193,10 +195,17 @@ class RAGKnowledgePromptAgent:
         DataFrame: DataFrame containing text chunks and their embeddings.
         """
         df = pd.read_csv(f"chunks-{self.unique_filename}", encoding='utf-8')
-        df['embeddings'] = df['text'].apply(self.get_embedding)
+    
+        client = OpenAI(base_url=self.openai_base_url, api_key=self.openai_api_key)
+        response = client.embeddings.create(
+            model="text-embedding-3-large",
+            input=df['text'].tolist(),   # ← tutti i chunk in una volta
+            encoding_format="float"
+        )
+        df['embeddings'] = [item.embedding for item in response.data]
         df.to_csv(f"embeddings-{self.unique_filename}", encoding='utf-8', index=False)
         return df
-
+    
     def find_prompt_in_knowledge(self, prompt):
         """
         Finds and responds to a prompt based on similarity with embedded knowledge.
@@ -229,7 +238,7 @@ class RAGKnowledgePromptAgent:
 
 class EvaluationAgent:
     
-    def __init__(self, openai_api_key, persona, evaluation_criteria, worker_agent, max_interactions=3, openai_base_url="https://openai.vocareum.com/v1"):
+    def __init__(self, openai_api_key, persona, evaluation_criteria, worker_agent, max_interactions, openai_base_url="https://openai.vocareum.com/v1"):
         # Initialize the EvaluationAgent with given attributes.
         self.openai_api_key = openai_api_key
         self.persona = persona

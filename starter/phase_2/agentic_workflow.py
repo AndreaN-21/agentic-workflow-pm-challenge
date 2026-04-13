@@ -77,7 +77,8 @@ program_manager_evaluation_agent = EvaluationAgent(
                       "Description: A brief explanation of what the feature does and its purpose\n" \
                       "Key Functionality: The specific capabilities or actions the feature provides\n" \
                       "User Benefit: How this feature creates value for the user",
-    worker_agent=program_manager_knowledge_agent  # This will be set to the program_manager_knowledge_agent after its instantiation
+    worker_agent=program_manager_knowledge_agent , # This will be set to the program_manager_knowledge_agent after its instantiation
+    max_interactions=3
 )
 
 # Development Engineer - Knowledge Augmented Prompt Agent
@@ -106,7 +107,8 @@ development_engineer_evaluation_agent = EvaluationAgent(
     openai_api_key=openai_api_key,
     persona=persona_dev_engineer_eval,
     evaluation_criteria=evaluation_criteria_dev_engineer,
-    worker_agent=development_engineer_knowledge_agent
+    worker_agent=development_engineer_knowledge_agent,
+    max_interactions=3
 ) 
 
 # Routing Agent - This agent will route the workflow steps to the appropriate support function (product manager, program manager, or development engineer).
@@ -180,45 +182,66 @@ routing_agent = RoutingAgent(openai_api_key=openai_api_key, agents=routing_agent
 print("\n*** Workflow execution started ***\n")
 # Workflow Prompt
 # ****
-workflow_prompt = "What would the development tasks for this product be?"
+workflow_prompt = (
+    "Create a comprehensive project plan for the Email Router product. "
+    "The plan must include: "
+    "1. User stories defined from the product spec. "
+    "2. Product features grouped from the user stories. "
+    "3. Development tasks for each user story."
+)
 # ****
 print(f"Task to complete in this workflow, workflow prompt = {workflow_prompt}")
 
-print("\nDefining workflow steps from the workflow prompt")
-# TODO: 12 - Implement the workflow.
-#   1. Use the 'action_planning_agent' to extract steps from the 'workflow_prompt'.
-#   2. Initialize an empty list to store 'completed_steps'.
-#   3. Loop through the extracted workflow steps:
-#      a. For each step, use the 'routing_agent' to route the step to the appropriate support function.
-#      b. Append the result to 'completed_steps'.
-#      c. Print information about the step being executed and its result.
-#   4. After the loop, print the final output of the workflow (the last completed step).
+print("\nDefining workflow steps from the workflow prompt") 
 workflow_steps = action_planning_agent.extract_steps_from_prompt(workflow_prompt)
 print(f"\nExtracted {len(workflow_steps)} workflow steps:")
 for idx, step in enumerate(workflow_steps, 1):
     print(f"  {idx}. {step}")
- 
-# Step 2 – initialize completed steps list
+ # Step 2 – initialize completed steps list
 completed_steps = []
- 
+
+# Variabili per tracciare l'output di ogni ruolo
+user_stories_output = ""
+product_features_output = ""
+development_tasks_output = ""
+
 # Step 3 – loop through steps and route each one
 for idx, step in enumerate(workflow_steps, 1):
     if not step.strip():
-        continue  # skip empty lines
- 
+        continue
+
     print(f"\n{'='*60}")
     print(f"Executing step {idx}: {step}")
     print(f"{'='*60}")
- 
+
     result = routing_agent.route(step)
     completed_steps.append(result)
- 
+
     print(f"\n✅ Step {idx} result:\n{result}")
- 
-# Step 4 – print the final output (last completed step)
+
+    # Mappa il risultato al ruolo corretto in base alla descrizione del passo
+    step_lower = step.lower()
+    if "user stor" in step_lower or "persona" in step_lower:
+        user_stories_output = result
+    elif "feature" in step_lower:
+        product_features_output = result
+    elif "task" in step_lower or "engineer" in step_lower or "develop" in step_lower:
+        development_tasks_output = result
+
+# Step 4 – print final consolidated output
 print(f"\n{'='*60}")
 print("*** Workflow complete ***")
 print(f"{'='*60}")
-if completed_steps:
-    print("\nFinal workflow output (last completed step):")
-    print(completed_steps[-1])
+
+final_output = {
+    "user_stories": user_stories_output or (completed_steps[0] if len(completed_steps) > 0 else "N/A"),
+    "product_features": product_features_output or (completed_steps[1] if len(completed_steps) > 1 else "N/A"),
+    "development_tasks": development_tasks_output or (completed_steps[2] if len(completed_steps) > 2 else "N/A"),
+}
+
+print("\n*** Final Email Router Project Plan ***")
+for section, content in final_output.items():
+    print(f"\n{'='*60}")
+    print(f"{section.upper().replace('_', ' ')}:")
+    print(f"{'='*60}")
+    print(content)

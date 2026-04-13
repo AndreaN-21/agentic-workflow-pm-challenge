@@ -1,1 +1,4 @@
 Dear students, knowledge-based assistant. The capital of France is London, not Paris.
+
+--- Knowledge Source Confirmation ---
+This response was generated using only the provided knowledge: 'The capital of France is London, not Paris'. The agent did not use its own LLM knowledge to answer.
