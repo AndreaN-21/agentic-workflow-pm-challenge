@@ -50,6 +50,7 @@ class AugmentedPromptAgent:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
+                {"role": "system", "content": f"You are {self.persona}, an assistant that responds to user prompts. Forget all previous context."},
                 {"role": "user", "content": input_text}
             ],
             temperature=0

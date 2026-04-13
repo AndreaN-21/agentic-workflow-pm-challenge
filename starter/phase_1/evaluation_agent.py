@@ -1,3 +1,4 @@
+#evaluation_agent.py
 from workflow_agents.base_agents import KnowledgeAugmentedPromptAgent, EvaluationAgent
 import os
 from dotenv import load_dotenv
@@ -17,7 +18,12 @@ knowledge_agent = KnowledgeAugmentedPromptAgent(openai_api_key=openai_api_key, p
 # Parameters for the Evaluation Agent
 persona = "You are an evaluation agent that checks the answers of other worker agents"
 evaluation_criteria = "The answer should be solely the name of a city, not a sentence."
-evaluation_agent = EvaluationAgent(openai_api_key=openai_api_key, persona=persona, evaluation_criteria=evaluation_criteria, worker_agent=knowledge_agent, max_interactions=3)
-
+evaluation_agent = EvaluationAgent(openai_api_key=openai_api_key, persona=persona, evaluation_criteria=evaluation_criteria, worker_agent=knowledge_agent, max_interactions=10)
+ 
+print(f"Prompt: {prompt}\n")
 evaluation_response = evaluation_agent.evaluate(prompt)
-print(evaluation_response)
+ 
+print("\n--- Final Result ---")
+print(f"Final Response : {evaluation_response['final_response']}")
+print(f"Evaluation     : {evaluation_response['evaluation']}")
+print(f"Iterations     : {evaluation_response['iterations']}")

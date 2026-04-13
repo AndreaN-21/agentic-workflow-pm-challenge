@@ -46,18 +46,24 @@ product_manager_knowledge_agent = KnowledgeAugmentedPromptAgent(
 persona_product_manager_eval = "You are an evaluation agent that checks the answers of other worker agents."
 evaluation_criteria_product_manager = "The answer should be user stories that follow this exact structure: " \
                       "As a [type of user], I want [an action or feature] so that [benefit/value]."
+
+worker_agent=product_manager_knowledge_agent 
 product_manager_evaluation_agent = EvaluationAgent(
     openai_api_key=openai_api_key,
     persona=persona_product_manager_eval,
     evaluation_criteria=evaluation_criteria_product_manager,
-    worker_agent=product_manager_knowledge_agent 
+    worker_agent=product_manager_knowledge_agent,
+    max_interactions=3
 )
 
 # Program Manager - Knowledge Augmented Prompt Agent
 persona_program_manager = "You are a Program Manager, you are responsible for defining the features for a product."
-knowledge_program_manager = "Features of a product are defined by organizing similar user stories into cohesive groups."
-# Instantiate a program_manager_knowledge_agent using 'persona_program_manager' and 'knowledge_program_manager'
-# (This is a necessary step before TODO 8. Students should add the instantiation code here.)
+knowledge_program_manager = "Features of a product are defined by organizing similar user stories into cohesive groups." 
+program_manager_knowledge_agent = KnowledgeAugmentedPromptAgent(
+    openai_api_key=openai_api_key,
+    persona=persona_program_manager,
+    knowledge=knowledge_program_manager
+)
 
 # Program Manager - Evaluation Agent
 persona_program_manager_eval = "You are an evaluation agent that checks the answers of other worker agents."
@@ -71,7 +77,7 @@ program_manager_evaluation_agent = EvaluationAgent(
                       "Description: A brief explanation of what the feature does and its purpose\n" \
                       "Key Functionality: The specific capabilities or actions the feature provides\n" \
                       "User Benefit: How this feature creates value for the user",
-    worker_agent=None  # This will be set to the program_manager_knowledge_agent after its instantiation
+    worker_agent=program_manager_knowledge_agent  # This will be set to the program_manager_knowledge_agent after its instantiation
 )
 
 # Development Engineer - Knowledge Augmented Prompt Agent
@@ -83,42 +89,71 @@ development_engineer_knowledge_agent = KnowledgeAugmentedPromptAgent(
     knowledge=knowledge_dev_engineer
 )
 
-# Development Engineer - Evaluation Agent
-persona_dev_engineer_eval = "You are an evaluation agent that checks the answers of other worker agents." 
+persona_dev_engineer_eval = (
+    "You are an evaluation agent that checks the answers of other worker agents."
+)
+evaluation_criteria_dev_engineer = (
+    "The answer should be tasks following this exact structure: "
+    "Task ID: A unique identifier for tracking purposes\n"
+    "Task Title: Brief description of the specific development work\n"
+    "Related User Story: Reference to the parent user story\n"
+    "Description: Detailed explanation of the technical work required\n"
+    "Acceptance Criteria: Specific requirements that must be met for completion\n"
+    "Estimated Effort: Time or complexity estimation\n"
+    "Dependencies: Any tasks that must be completed first"
+)
 development_engineer_evaluation_agent = EvaluationAgent(
     openai_api_key=openai_api_key,
     persona=persona_dev_engineer_eval,
-    evaluation_criteria="The answer should be tasks following this exact structure: " \
-                      "Task ID: A unique identifier for tracking purposes\n" \
-                      "Task Title: Brief description of the specific development work\n" \
-                      "Related User Story: Reference to the parent user story\n" \
-                      "Description: Detailed explanation of the technical work required\n" \
-                      "Acceptance Criteria: Specific requirements that must be met for completion\n" \
-                      "Estimated Effort: Time or complexity estimation\n" \
-                      "Dependencies: Any tasks that must be completed first",
+    evaluation_criteria=evaluation_criteria_dev_engineer,
     worker_agent=development_engineer_knowledge_agent
-)
-
+) 
 
 # Routing Agent - This agent will route the workflow steps to the appropriate support function (product manager, program manager, or development engineer).
 def product_manager_support_function(query):
-    """Routes to Product Manager: generates & evaluates user stories."""
+    """
+    1. KnowledgeAugmentedPromptAgent generates user stories.
+    2. EvaluationAgent validates / refines iteratively.
+    3. Returns the final validated response.
+    """
+    # Step 1: generate initial response from knowledge agent
+    knowledge_response = product_manager_knowledge_agent.respond(query)
+    print(f"\n[PM Knowledge Agent]\n{knowledge_response}")
+ 
+    # Step 2: evaluate and refine — the evaluator's worker_agent will handle
+    # corrections if the initial response doesn't meet the criteria
     result = product_manager_evaluation_agent.evaluate(query)
     return result["final_response"]
  
  
 def program_manager_support_function(query):
-    """Routes to Program Manager: generates & evaluates product features."""
+    """
+    1. KnowledgeAugmentedPromptAgent generates product features.
+    2. EvaluationAgent validates / refines iteratively.
+    3. Returns the final validated response.
+    """
+    # Step 1: generate initial response from knowledge agent
+    knowledge_response = program_manager_knowledge_agent.respond(query)
+    print(f"\n[PgM Knowledge Agent]\n{knowledge_response}")
+ 
+    # Step 2: evaluate and refine
     result = program_manager_evaluation_agent.evaluate(query)
     return result["final_response"]
  
  
 def development_engineer_support_function(query):
-    """Routes to Dev Engineer: generates & evaluates development tasks."""
+    """
+    1. KnowledgeAugmentedPromptAgent generates engineering tasks.
+    2. EvaluationAgent validates / refines iteratively.
+    3. Returns the final validated response.
+    """
+    # Step 1: generate initial response from knowledge agent
+    knowledge_response = development_engineer_knowledge_agent.respond(query)
+    print(f"\n[Dev Engineer Knowledge Agent]\n{knowledge_response}")
+ 
+    # Step 2: evaluate and refine
     result = development_engineer_evaluation_agent.evaluate(query)
     return result["final_response"]
-
-
 
 routing_agent = [
     {

@@ -1,4 +1,4 @@
-
+#routing_agent.py
 from workflow_agents.base_agents import RoutingAgent, KnowledgeAugmentedPromptAgent
 import os
 from dotenv import load_dotenv
@@ -52,7 +52,17 @@ agents = [
 ]
 
 routing_agent.agents = agents
- 
-response_1 = routing_agent.route("Tell me about the history of Rome, Texas")
-response_2 = routing_agent.route("Tell me about the history of Rome, Italy")
-response_3 = routing_agent.route("One story takes 2 days, and there are 20 stories")
+  
+prompts = [
+    "Tell me about the history of Rome, Texas",
+    "Tell me about the history of Rome, Italy",
+    "One story takes 2 days, and there are 20 stories",
+]
+
+
+for prompt in prompts:
+    print(f"\n{'='*60}")
+    print(f"Prompt: {prompt}")
+    print(f"{'='*60}")
+    response = routing_agent.route(prompt)
+    print(f"\nResponse:\n{response}")

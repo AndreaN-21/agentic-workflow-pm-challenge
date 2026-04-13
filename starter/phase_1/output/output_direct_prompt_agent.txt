@@ -1,0 +1,2 @@
+The capital of France is Paris.
+The agent used its general knowledge about world capitals to generate this response.

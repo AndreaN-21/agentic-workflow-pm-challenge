@@ -50,6 +50,7 @@ class AugmentedPromptAgent:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
+                {"role": "system", "content": f"You are {self.persona}, an assistant that responds to user prompts. Forget all previous context."},
                 {"role": "user", "content": input_text}
             ],
             temperature=0
@@ -192,10 +193,17 @@ class RAGKnowledgePromptAgent:
         DataFrame: DataFrame containing text chunks and their embeddings.
         """
         df = pd.read_csv(f"chunks-{self.unique_filename}", encoding='utf-8')
-        df['embeddings'] = df['text'].apply(self.get_embedding)
+    
+        client = OpenAI(base_url=self.openai_base_url, api_key=self.openai_api_key)
+        response = client.embeddings.create(
+            model="text-embedding-3-large",
+            input=df['text'].tolist(),   # ← tutti i chunk in una volta
+            encoding_format="float"
+        )
+        df['embeddings'] = [item.embedding for item in response.data]
         df.to_csv(f"embeddings-{self.unique_filename}", encoding='utf-8', index=False)
         return df
-
+    
     def find_prompt_in_knowledge(self, prompt):
         """
         Finds and responds to a prompt based on similarity with embedded knowledge.
