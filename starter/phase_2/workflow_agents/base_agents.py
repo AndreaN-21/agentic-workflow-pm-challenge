@@ -228,7 +228,7 @@ class RAGKnowledgePromptAgent:
 
 class EvaluationAgent:
     
-    def __init__(self, openai_api_key, persona, evaluation_criteria, worker_agent, max_interactions, openai_base_url="https://openai.vocareum.com/v1"):
+    def __init__(self, openai_api_key, persona, evaluation_criteria, worker_agent, max_interactions=3, openai_base_url="https://openai.vocareum.com/v1"):
         # Initialize the EvaluationAgent with given attributes.
         self.openai_api_key = openai_api_key
         self.persona = persona
