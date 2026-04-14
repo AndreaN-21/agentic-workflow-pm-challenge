@@ -180,8 +180,8 @@ routing_agent = RoutingAgent(openai_api_key=openai_api_key, agents=routing_agent
 # Run the workflow
 
 print("\n*** Workflow execution started ***\n")
-# Workflow Prompt
-# ****
+# Workflow Prompt 
+ 
 workflow_prompt = (
     "Create a comprehensive project plan for the Email Router product. "
     "The plan must include: "
@@ -189,59 +189,45 @@ workflow_prompt = (
     "2. Product features grouped from the user stories. "
     "3. Development tasks for each user story."
 )
-# ****
 print(f"Task to complete in this workflow, workflow prompt = {workflow_prompt}")
-
-print("\nDefining workflow steps from the workflow prompt") 
+print("\nDefining workflow steps from the workflow prompt")
+ 
 workflow_steps = action_planning_agent.extract_steps_from_prompt(workflow_prompt)
 print(f"\nExtracted {len(workflow_steps)} workflow steps:")
 for idx, step in enumerate(workflow_steps, 1):
     print(f"  {idx}. {step}")
- # Step 2 – initialize completed steps list
-completed_steps = []
 
-# Variabili per tracciare l'output di ogni ruolo
-user_stories_output = ""
-product_features_output = ""
-development_tasks_output = ""
-
-# Step 3 – loop through steps and route each one
-for idx, step in enumerate(workflow_steps, 1):
-    if not step.strip():
-        continue
-
-    print(f"\n{'='*60}")
-    print(f"Executing step {idx}: {step}")
-    print(f"{'='*60}")
-
-    result = routing_agent.route(step)
-    completed_steps.append(result)
-
-    print(f"\n✅ Step {idx} result:\n{result}")
-
-    # Mappa il risultato al ruolo corretto in base alla descrizione del passo
-    step_lower = step.lower()
-    if "user stor" in step_lower or "persona" in step_lower:
-        user_stories_output = result
-    elif "feature" in step_lower:
-        product_features_output = result
-    elif "task" in step_lower or "engineer" in step_lower or "develop" in step_lower:
-        development_tasks_output = result
-
-# Step 4 – print final consolidated output
+email_router_prompt = (
+    "Based on the Email Router product specification, which describes an AI-powered "
+    "system that automatically classifies, routes, and manages incoming emails using "
+    "NLP and machine learning, please provide the required output."
+)
 print(f"\n{'='*60}")
-print("*** Workflow complete ***")
+print("Generating User Stories (Product Manager)...")
 print(f"{'='*60}")
+user_stories_output = product_manager_support_function(email_router_prompt)
+ 
+print(f"\n{'='*60}")
+print("Generating Product Features (Program Manager)...")
+print(f"{'='*60}")
+product_features_output = program_manager_support_function(email_router_prompt)
+ 
+print(f"\n{'='*60}")
+print("Generating Development Tasks (Development Engineer)...")
+print(f"{'='*60}")
+development_tasks_output = development_engineer_support_function(email_router_prompt)
+ 
 
 final_output = {
-    "user_stories": user_stories_output or (completed_steps[0] if len(completed_steps) > 0 else "N/A"),
-    "product_features": product_features_output or (completed_steps[1] if len(completed_steps) > 1 else "N/A"),
-    "development_tasks": development_tasks_output or (completed_steps[2] if len(completed_steps) > 2 else "N/A"),
+    "user_stories": user_stories_output,
+    "product_features": product_features_output,
+    "development_tasks": development_tasks_output,
 }
-
-print("\n*** Final Email Router Project Plan ***")
+ 
+print(f"\n{'='*60}")
+print("*** Final Email Router Project Plan ***")
+print(f"{'='*60}")
 for section, content in final_output.items():
-    print(f"\n{'='*60}")
-    print(f"{section.upper().replace('_', ' ')}:")
-    print(f"{'='*60}")
+    print(f"\n{section.upper().replace('_', ' ')}:")
+    print(f"{'-'*40}")
     print(content)
